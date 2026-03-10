@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Super Admin | LojinhaBairro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style> body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif;} .card { border: none; } </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold text-primary"><i class="fa-solid fa-server"></i> Painel Mestre - LojinhaBairro</a>
+            <button class="btn btn-outline-light btn-sm" onclick="fazerLogout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4 px-4 pb-5">
+        <div class="d-flex justify-content-between mb-4 align-items-center">
+            <h3 class="fw-bold text-dark m-0">Gestão de Lojistas (SaaS)</h3>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-header py-3 bg-white">
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-primary border-primary"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" id="inputBuscaLojista" class="form-control border-primary" placeholder="Buscar lojista por loja, proprietário, e-mail, telefone ou cidade..." autocomplete="off">
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0">
+                        <thead class="table-light"><tr><th>Lojista / Empresa</th><th>Localização / Endereço</th><th>Assinatura / Status</th><th>Ações Rápidas</th></tr></thead>
+                        <tbody id="tabela-lojas">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditarPlano" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-calendar-days"></i> Renovar Assinatura</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formPlano">
+                        <input type="hidden" id="lojaPlanoId">
+                        <label class="form-label text-muted fw-bold">Selecione o Período</label>
+                        <select class="form-select mb-4" id="lojaPlanoDias">
+                            <option value="30">Plano Mensal (+30 Dias)</option>
+                            <option value="180">Plano Semestral (+180 Dias)</option>
+                            <option value="365">Plano Anual (+365 Dias)</option>
+                            <option value="99999">Ilimitado / Livre (Vitalício)</option>
+                        </select>
+                        <button type="submit" class="btn btn-success w-100">Aplicar Renovação</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let listaLojasGlobais = []; // Variável para guardar as lojas na memória e fazer a busca rápida
+
+        async function carregarLojas() {
+            const response = await fetch('/api/superadmin/lojas');
+            listaLojasGlobais = await response.json();
+            
+            // Renderiza a tabela inicial ou após alguma alteração (mantendo o filtro atual se houver)
+            document.getElementById('inputBuscaLojista').dispatchEvent(new Event('input'));
+        }
+
+        // FUNÇÃO QUE DESENHA AS LINHAS NA TABELA
+        function renderizarTabela(lojas) {
+            const tbody = document.getElementById('tabela-lojas'); 
+            tbody.innerHTML = '';
+            
+            if (lojas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted"><i class="fa-solid fa-store-slash fa-2x mb-2"></i><br>Nenhum lojista encontrado.</td></tr>';
+                return;
+            }
+
+            lojas.forEach(l => {
+                let dataVenc = l.dataVencimento ? l.dataVencimento.split('-').reverse().join('/') : 'Sem plano';
+                if(dataVenc.includes('212')) dataVenc = "ILIMITADO (Livre)"; 
+                
+                let dataCad = l.dataCadastro ? new Date(l.dataCadastro).toLocaleDateString('pt-BR') : 'Dado Antigo';
+
+                let btnStatus = l.ativo ? `<button class="btn btn-sm btn-outline-danger w-100" onclick="mudarStatus(${l.id})"><i class="fa-solid fa-ban"></i> Bloquear Acesso</button>` 
+                                        : `<button class="btn btn-sm btn-outline-success w-100" onclick="mudarStatus(${l.id})"><i class="fa-solid fa-check"></i> Desbloquear Acesso</button>`;
+                let badgeStatus = l.ativo ? `<span class="badge bg-success mb-2">Ativo</span>` : `<span class="badge bg-danger mb-2">Bloqueado</span>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-3">
+                            <strong class="fs-6 text-dark">${l.nomeProprietario || 'Proprietário Ñ Cadastrado'}</strong><br>
+                            <span class="text-primary fw-bold"><i class="fa-solid fa-store"></i> ${l.nome}</span> <span class="text-muted small">(/${l.slug})</span><br>
+                            <span class="text-muted small"><i class="fa-solid fa-envelope"></i> ${l.email || '-'} | <i class="fa-solid fa-phone"></i> ${l.telefoneWhatsApp || '-'}</span><br>
+                            <span class="text-secondary small mt-1 d-inline-block"><i class="fa-solid fa-calendar-check"></i> Cadastrado em: <b>${dataCad}</b></span>
+                        </td>
+                        <td class="p-3">
+                            <span class="text-dark fw-bold">${l.cidade || '-'}/${l.estado || '-'}</span><br>
+                            <span class="text-muted small">${l.rua || '-'}, ${l.numero || '-'}</span><br>
+                            <span class="text-muted small">CEP: ${l.cep || '-'}</span>
+                        </td>
+                        <td class="p-3">
+                            ${badgeStatus}<br>
+                            <span class="small text-muted fw-bold">Vence em: <span class="${dataVenc.includes('ILI') ? 'text-success' : 'text-warning'}">${dataVenc}</span></span>
+                        </td>
+                        <td class="p-3" style="width: 200px;">
+                            <button class="btn btn-sm btn-primary w-100 mb-2" onclick="abrirModalPlano(${l.id})"><i class="fa-solid fa-file-invoice-dollar"></i> Editar Plano</button>
+                            ${btnStatus}
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // LÓGICA DA BARRA DE BUSCA
+        document.getElementById('inputBuscaLojista').addEventListener('input', function(e) {
+            const termo = e.target.value.toLowerCase().trim();
+            
+            // Se não tiver nada digitado, mostra todas as lojas
+            if(termo.length === 0) {
+                renderizarTabela(listaLojasGlobais);
+                return;
+            }
+
+            // Filtra o array pela busca
+            const lojasFiltradas = listaLojasGlobais.filter(l => {
+                return (l.nome && l.nome.toLowerCase().includes(termo)) ||
+                       (l.nomeProprietario && l.nomeProprietario.toLowerCase().includes(termo)) ||
+                       (l.email && l.email.toLowerCase().includes(termo)) ||
+                       (l.cidade && l.cidade.toLowerCase().includes(termo)) ||
+                       (l.telefoneWhatsApp && l.telefoneWhatsApp.includes(termo));
+            });
+
+            renderizarTabela(lojasFiltradas);
+        });
+
+        // FUNÇÕES DE AÇÃO DO ADMIN
+        function abrirModalPlano(id) {
+            document.getElementById('lojaPlanoId').value = id;
+            new bootstrap.Modal(document.getElementById('modalEditarPlano')).show();
+        }
+
+        document.getElementById('formPlano').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('lojaPlanoId').value;
+            const dias = parseInt(document.getElementById('lojaPlanoDias').value);
+            await fetch(`/api/superadmin/lojas/${id}/dias`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({dias: dias}) });
+            bootstrap.Modal.getInstance(document.getElementById('modalEditarPlano')).hide();
+            carregarLojas();
+        });
+        
+        async function mudarStatus(id) {
+            await fetch(`/api/superadmin/lojas/${id}/status`, { method: 'PUT' });
+            carregarLojas();
+        }
+
+        function fazerLogout() {
+            localStorage.removeItem('lojaLogada'); window.location.href = '/login.html';
+        }
+
+        // Inicia carregando os dados do Java
+        carregarLojas();
+    </script>
+</body>
+</html>

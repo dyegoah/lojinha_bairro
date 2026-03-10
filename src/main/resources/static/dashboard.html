@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | LojinhaBairro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root { --cor-primaria: #4e73df; --cor-fundo: #f8f9fc; --cor-texto: #5a5c69; }
+        body { background-color: var(--cor-fundo); color: var(--cor-texto); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+        #wrapper { display: flex; width: 100vw; height: 100vh; }
+        #sidebar { width: 250px; background-color: var(--cor-primaria); color: white; display: flex; flex-direction: column; transition: all 0.3s; }
+        #sidebar .brand { padding: 20px; font-size: 1.5rem; font-weight: bold; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        #sidebar a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 15px 20px; display: block; transition: 0.2s; cursor: pointer;}
+        #sidebar a:hover, #sidebar a.active { color: white; background-color: rgba(255,255,255,0.1); border-left: 4px solid white; }
+        #content-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        #topbar { background-color: white; height: 70px; box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,0.15); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+        .secao-dashboard { display: none; } 
+        .secao-ativa { display: block; } 
+        .card-resumo { border-left: 4px solid var(--cor-primaria); box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,0.15); border-radius: 0.35rem; }
+        .card-icon { font-size: 2rem; color: #dddfeb; }
+    </style>
+</head>
+<body>
+
+<div id="wrapper">
+    <nav id="sidebar">
+        <div class="brand"><i class="fa-solid fa-store"></i> LojinhaBairro</div>
+        <a id="nav-home" class="active" onclick="mostrarSecao('home')"><i class="fa-solid fa-chart-line me-2"></i> Painel Inicial</a>
+        <a id="nav-produtos" onclick="mostrarSecao('produtos')"><i class="fa-solid fa-box-open me-2"></i> Produtos</a>
+        <a id="nav-estoque" onclick="mostrarSecao('estoque')"><i class="fa-solid fa-boxes-stacked me-2"></i> Estoque</a>
+        <a id="nav-clientes" onclick="mostrarSecao('clientes')"><i class="fa-solid fa-users me-2"></i> Clientes</a>
+        <a id="nav-relatorios" onclick="mostrarSecao('relatorios')"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Relatórios</a>
+        <a id="nav-marca" onclick="mostrarSecao('marca')"><i class="fa-solid fa-palette me-2"></i> Marca e Mural</a>
+        <a id="nav-configuracoes" onclick="mostrarSecao('configuracoes')"><i class="fa-solid fa-gear me-2"></i> Configurações</a>
+    </nav>
+
+    <div id="content-wrapper">
+		<header id="topbar">
+		            <div><button class="btn btn-link d-md-none text-dark"><i class="fa-solid fa-bars"></i></button></div>
+		            <div class="d-flex align-items-center">
+		                
+		                <div class="position-relative me-4" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalPedidosPendentes" title="Pedidos do WhatsApp">
+		                    <i class="fa-brands fa-whatsapp fs-4" style="color: #25D366;"></i>
+		                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="badge-pedidos" style="display: none; font-size: 0.6rem;">0</span>
+		                </div>
+
+		                <a href="/catalogo.html" target="_blank" class="btn btn-sm btn-outline-primary me-4 d-none d-md-inline">Ver Minha Loja</a>
+		                
+		                <div class="dropdown">
+		                    <button class="btn btn-link dropdown-toggle text-dark text-decoration-none d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+		                        <span class="me-2 small text-gray-600">Olá, <b id="nome-loja-header">Lojinha</b></span>
+		                        <img class="rounded-circle" src="https://ui-avatars.com/api/?name=Loja&background=random" id="avatar-loja" width="32">
+		                    </button>
+		                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+		                        <li><h6 class="dropdown-header">Ajuda e Suporte</h6></li>
+		                        <li><a class="dropdown-item" href="https://wa.me/5599999999999?text=Olá%20Programador,%20preciso%20de%20ajuda%20com%20o%20sistema!" target="_blank"><i class="fa-brands fa-whatsapp text-success me-2"></i> Falar com o Desenvolvedor</a></li>
+		                        <li><a class="dropdown-item" href="mailto:dyego@email.com"><i class="fa-solid fa-envelope text-primary me-2"></i> Enviar Email</a></li>
+		                        <li><hr class="dropdown-divider"></li>
+		                        <li><a class="dropdown-item text-danger" href="#" onclick="fazerLogout()"><i class="fa-solid fa-right-from-bracket me-2"></i> Sair do Sistema</a></li>
+		                    </ul>
+		                </div>
+		            </div>
+		        </header>
+
+        <main class="container-fluid p-4">
+            
+            <div id="secao-home" class="secao-dashboard secao-ativa">
+                <div class="d-sm-flex align-items-center justify-content-between mb-4"><h1 class="h3 mb-0 text-gray-800">Visão Geral</h1></div>
+                <div class="row">
+                    <div class="col-xl-4 col-md-6 mb-4"><div class="card card-resumo h-100 py-2" style="border-left-color: #1cc88a;"><div class="card-body"><div class="row no-gutters align-items-center"><div class="col mr-2"><div class="text-xs font-weight-bold text-success text-uppercase mb-1">Vendas (Faturamento)</div><div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-vendas-valor">R$ 0,00</div></div><div class="col-auto"><i class="fa-solid fa-money-bill-trend-up fa-2x card-icon"></i></div></div></div></div></div>
+                    <div class="col-xl-4 col-md-6 mb-4"><div class="card card-resumo h-100 py-2" style="border-left-color: #36b9cc;"><div class="card-body"><div class="row no-gutters align-items-center"><div class="col mr-2"><div class="text-xs font-weight-bold text-info text-uppercase mb-1">Produtos Vendidos (Qtd)</div><div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-vendas-qtd">0</div></div><div class="col-auto"><i class="fa-solid fa-bag-shopping fa-2x card-icon"></i></div></div></div></div></div>
+                    <div class="col-xl-4 col-md-6 mb-4"><div class="card card-resumo h-100 py-2" style="border-left-color: #858796;"><div class="card-body"><div class="row no-gutters align-items-center"><div class="col mr-2"><div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Lucro Potencial (Estoque)</div><div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-lucro">R$ 0,00</div></div><div class="col-auto"><i class="fa-solid fa-scale-unbalanced fa-2x card-icon"></i></div></div></div></div></div>
+                    <div class="col-xl-4 col-md-6 mb-4"><div class="card card-resumo h-100 py-2" style="border-left-color: #f6c23e;"><div class="card-body"><div class="row no-gutters align-items-center"><div class="col mr-2"><div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Itens em Estoque</div><div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-estoque">0</div></div><div class="col-auto"><i class="fa-solid fa-boxes-stacked fa-2x card-icon"></i></div></div></div></div></div>
+                    <div class="col-xl-4 col-md-6 mb-4"><div class="card card-resumo h-100 py-2" style="border-left-color: #f64e60;"><div class="card-body"><div class="row no-gutters align-items-center"><div class="col mr-2"><div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Clientes Cadastrados</div><div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-clientes">0</div></div><div class="col-auto"><i class="fa-solid fa-users fa-2x card-icon"></i></div></div></div></div></div>
+                    <div class="col-xl-4 col-md-6 mb-4"><div class="card card-resumo h-100 py-2" style="border-left-color: #4e73df;"><div class="card-body"><div class="row no-gutters align-items-center"><div class="col mr-2"><div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Visualizações da Loja</div><div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-visitas">0</div></div><div class="col-auto"><i class="fa-solid fa-eye fa-2x card-icon"></i></div></div></div></div></div>
+                </div>
+                <div class="row mt-2"><div class="col-lg-6"><div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Estoque por Categoria</h6></div><div class="card-body" id="dash-categorias-lista">Carregando...</div></div></div></div>
+            </div>
+
+            <div id="secao-produtos" class="secao-dashboard">
+                <div class="d-flex justify-content-between mb-4"><h1 class="h3 mb-0 text-gray-800">Gerenciar Produtos</h1><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovoProduto" onclick="carregarCategoriasFormulario()">+ Novo Produto</button></div>
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 bg-white">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-primary border-primary"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="inputBuscaProduto" class="form-control border-primary" placeholder="Buscar produto por nome ou categoria..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light"><tr><th>Imagem</th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Ações</th></tr></thead>
+                                <tbody id="tabela-produtos"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="secao-estoque" class="secao-dashboard">
+                <h1 class="h3 mb-4 text-gray-800">Controle de Estoque</h1>
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 bg-white">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-primary border-primary"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="inputBuscaEstoque" class="form-control border-primary" placeholder="Buscar no estoque por nome ou categoria..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light"><tr><th>Produto</th><th>Categoria</th><th>Quantidade Atual</th><th>Ação</th></tr></thead>
+                                <tbody id="tabela-estoque"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="secao-clientes" class="secao-dashboard">
+                <h1 class="h3 mb-4 text-gray-800">Meus Clientes</h1>
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 bg-white">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-primary border-primary"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="inputBuscaCliente" class="form-control border-primary" placeholder="Buscar cliente por nome, whatsapp, endereço ou cidade..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light"><tr><th>Nome</th><th>WhatsApp</th><th>Data Nasc.</th><th>Cidade/UF</th><th>Endereço</th><th>Ações</th></tr></thead>
+                                <tbody id="tabela-clientes"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+			</div>
+
+            <div id="secao-relatorios" class="secao-dashboard">
+                <h1 class="h3 mb-4 text-gray-800">Relatórios</h1>
+                <div class="alert alert-info">A área de relatórios de lucros e perdas será ativada na próxima versão!</div>
+            </div>
+
+            <div id="secao-marca" class="secao-dashboard">
+                <h1 class="h3 mb-4 text-gray-800">Personalizar Marca e Mural</h1>
+                <div class="card shadow mb-4 w-50"><div class="card-body"><form id="formMarca"><div class="mb-3"><label>Cor Principal (Tema da Loja)</label><input type="color" id="configCor" class="form-control form-control-color w-100"></div><div class="mb-4"><label>Imagem do Mural Temático (Upload)</label><input type="file" id="configMuralFile" class="form-control" accept="image/*"><small class="text-muted">Deixe em branco se não quiser alterar a foto atual.</small></div><button type="submit" class="btn btn-success" id="btnSalvarMarca">Salvar Visual da Loja</button></form></div></div>
+            </div>
+
+            <div id="secao-configuracoes" class="secao-dashboard">
+                <h1 class="h3 mb-4 text-gray-800">Configurações Gerais</h1>
+                <div class="card shadow mb-4 w-50"><div class="card-body"><form id="formConfig"><div class="mb-3"><label>Nome da Lojinha</label><input type="text" id="configNome" class="form-control" required></div><div class="mb-3"><label>Número do WhatsApp (Com DDD)</label><input type="text" id="configZap" class="form-control" placeholder="Ex: 5511999999999" required></div><div class="mb-4"><label class="text-success fw-bold"><i class="fa-brands fa-pix"></i> Chave PIX (Para Recebimentos)</label><input type="text" id="configPix" class="form-control border-success" placeholder="Ex: email@loja.com, CPF ou Celular"><small class="text-muted">Esta chave aparecerá no carrinho do cliente.</small></div><button type="submit" class="btn btn-primary">Salvar Configurações</button></form></div></div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNovoProduto" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Novo Produto</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formProduto"><div class="mb-3"><label>Nome</label><input type="text" id="prodNome" class="form-control" required></div><div class="row"><div class="col-md-6 mb-3"><label>Preço de Custo (R$)</label><input type="number" step="0.01" id="prodCusto" class="form-control" required></div><div class="col-md-6 mb-3"><label>Preço de Venda (R$)</label><input type="number" step="0.01" id="prodPreco" class="form-control" required></div></div><div class="mb-3"><label>Categoria</label><select id="prodCategoria" class="form-select" required></select></div><div class="mb-3"><label>Foto do Produto</label><input type="file" id="prodFile" class="form-control" accept="image/*"></div><button type="submit" class="btn btn-primary w-100" id="btnSalvarProduto">Salvar no Banco</button></form></div></div></div></div>
+
+<div class="modal fade" id="modalEditarCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fa-solid fa-user-pen"></i> Editar Cliente</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formEditarCliente"><input type="hidden" id="editCliId"><div class="mb-3"><label>Nome Completo</label><input type="text" id="editCliNome" class="form-control" required></div><div class="row"><div class="col-md-6 mb-3"><label>WhatsApp</label><input type="text" id="editCliZap" class="form-control" required></div><div class="col-md-6 mb-3"><label>Data Nasc.</label><input type="date" id="editCliNasc" class="form-control"></div></div><div class="row"><div class="col-md-4 mb-3"><label>CEP</label><input type="text" id="editCliCep" class="form-control"></div><div class="col-md-8 mb-3"><label>Endereço</label><input type="text" id="editCliEndereco" class="form-control"></div></div><div class="row"><div class="col-md-4 mb-3"><label>Número</label><input type="text" id="editCliNumero" class="form-control"></div><div class="col-md-6 mb-3"><label>Cidade</label><input type="text" id="editCliCidade" class="form-control"></div><div class="col-md-2 mb-3"><label>UF</label><input type="text" id="editCliEstado" class="form-control" maxlength="2"></div></div><button type="submit" class="btn btn-primary w-100">Salvar Alterações</button></form></div></div></div></div>
+
+<div class="modal fade" id="modalPedidosPendentes" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa-brands fa-whatsapp"></i> Pedidos no WhatsApp</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light" id="lista-pedidos-pendentes">
+                <p class="text-center text-muted mt-3">Nenhum pedido pendente.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+	// ===== BLOQUEIO DE SEGURANÇA E INJEÇÃO DE LOJA ======
+	    const authData = localStorage.getItem('lojaLogada');
+	    if (!authData) { window.location.href = '/login.html'; }
+	    const lojaInfo = JSON.parse(authData);
+
+	    const originalFetch = window.fetch;
+	    window.fetch = function() {
+	        let [resource, config] = arguments;
+	        if(resource.startsWith('/api/admin')) {
+	            if(!config) config = {};
+	            if(!config.headers) config.headers = {};
+	            config.headers['X-Loja-ID'] = lojaInfo.lojaId;
+	        }
+	        return originalFetch(resource, config);
+	    };
+
+	    function fazerLogout() {
+	        localStorage.removeItem('lojaLogada');
+	        window.location.href = '/login.html';
+	    }
+	    // ====================================================	
+
+    let listaClientesGlobais = [];
+    let listaProdutosGlobais = []; 
+
+    function mostrarSecao(secao) {
+        document.querySelectorAll('.secao-dashboard').forEach(el => el.classList.remove('secao-ativa'));
+        document.querySelectorAll('#sidebar a').forEach(el => el.classList.remove('active'));
+        document.getElementById('secao-' + secao).classList.add('secao-ativa');
+        document.getElementById('nav-' + secao).classList.add('active');
+        
+        if(secao === 'home') carregarEstatisticasIniciais();
+        if(secao === 'produtos') carregarTabelaProdutos();
+        if(secao === 'estoque') carregarTabelaEstoque();
+        if(secao === 'clientes') carregarTabelaClientes();
+        if(secao === 'configuracoes' || secao === 'marca') carregarConfigsLoja();
+    }
+
+    async function carregarEstatisticasIniciais() {
+        const [resLoja, resProdutos, resClientes, resVendas] = await Promise.all([
+            fetch('/api/admin/loja'), fetch('/api/admin/produtos'), fetch('/api/admin/clientes'), fetch('/api/admin/vendas')
+        ]);
+        const loja = await resLoja.json(); 
+        const produtos = await resProdutos.json(); 
+        const clientes = await resClientes.json();
+        const vendas = await resVendas.json();
+
+        document.getElementById('dash-visitas').innerText = loja.visualizacoes || 0;
+        document.getElementById('dash-clientes').innerText = clientes.length;
+
+        // CALCULANDO VENDAS E ATUALIZANDO SINO DO WHATSAPP
+        let faturamento = 0; let qtdVendida = 0;
+        let htmlPedidos = ''; let contPedidos = 0;
+
+        vendas.forEach(v => { 
+            if(v.status === 'CONCLUIDA') {
+                faturamento += v.valorTotal || 0; 
+                qtdVendida += v.quantidadeItens || 0; 
+            } else if (v.status === 'PENDENTE') {
+                contPedidos++;
+                let data = new Date(v.dataVenda).toLocaleString('pt-BR');
+                htmlPedidos += `
+                <div class="card border-left-success shadow-sm mb-3">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">${v.nomeCliente || 'Cliente'}</span>
+                            <span class="badge bg-secondary">${data}</span>
+                        </div>
+                        <p class="mb-2 text-muted small">Valor: R$ ${v.valorTotal.toFixed(2).replace('.',',')} (${v.quantidadeItens} itens)</p>
+                        <div class="d-flex gap-2">
+                            <span class="align-self-center small fw-bold me-2">Venda Realizada?</span>
+                            <button class="btn btn-sm btn-success flex-fill" onclick="responderPedido(${v.id}, 'CONCLUIDA')"><i class="fa-solid fa-check"></i> Sim</button>
+                            <button class="btn btn-sm btn-danger flex-fill" onclick="responderPedido(${v.id}, 'REJEITADA')"><i class="fa-solid fa-xmark"></i> Não</button>
+                        </div>
+                    </div>
+                </div>`;
+            }
+        });
+
+        // Atualiza a bolinha vermelha do Zap
+        const badge = document.getElementById('badge-pedidos');
+        if(contPedidos > 0) {
+            badge.innerText = contPedidos; badge.style.display = 'block';
+            document.getElementById('lista-pedidos-pendentes').innerHTML = htmlPedidos;
+        } else {
+            badge.style.display = 'none';
+            document.getElementById('lista-pedidos-pendentes').innerHTML = '<p class="text-center text-muted mt-3">Nenhum pedido pendente.</p>';
+        }
+
+        document.getElementById('dash-vendas-valor').innerText = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
+        document.getElementById('dash-vendas-qtd').innerText = qtdVendida;
+
+        // CALCULANDO ESTOQUE E LUCRO
+        let estoqueTotal = 0; let lucroPotencial = 0; let categoriasCount = {};
+        produtos.forEach(p => {
+            let qtd = p.quantidadeEstoque || 0; let custo = p.precoCusto || 0; let venda = p.preco || 0;
+            estoqueTotal += qtd; lucroPotencial += (venda - custo) * qtd;
+            let catNome = p.categoria.nome;
+            if(!categoriasCount[catNome]) categoriasCount[catNome] = 0;
+            categoriasCount[catNome] += qtd;
+        });
+
+        document.getElementById('dash-estoque').innerText = estoqueTotal;
+        document.getElementById('dash-lucro').innerText = `R$ ${lucroPotencial.toFixed(2).replace('.', ',')}`;
+
+        let htmlCat = '';
+        for (const [cat, qtd] of Object.entries(categoriasCount)) { htmlCat += `<h4 class="small font-weight-bold">${cat} <span class="float-end">${qtd} itens</span></h4><div class="progress mb-4"><div class="progress-bar bg-info" style="width: 100%"></div></div>`; }
+        document.getElementById('dash-categorias-lista').innerHTML = htmlCat || '<p>Nenhum produto em estoque.</p>';
+    }
+
+    // Função que marca a venda como CONCLUIDA e desconta estoque!
+    async function responderPedido(id, status) {
+        await fetch(`/api/admin/vendas/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: status })
+        });
+        carregarEstatisticasIniciais(); // Atualiza painel e sino
+        carregarTabelaEstoque(); // Atualiza estoque visual
+    }
+
+    async function carregarConfigsLoja() {
+        const res = await fetch('/api/admin/loja');
+        const loja = await res.json();
+        document.getElementById('nome-loja-header').innerText = loja.nome;
+        
+        if(document.getElementById('configNome')) document.getElementById('configNome').value = loja.nome;
+        if(document.getElementById('configZap')) document.getElementById('configZap').value = loja.telefoneWhatsApp;
+        if(document.getElementById('configCor')) document.getElementById('configCor').value = loja.corPrincipal || '#FF1493';
+        if(document.getElementById('configPix')) document.getElementById('configPix').value = loja.chavePix || '';
+    }
+    
+    carregarConfigsLoja(); carregarEstatisticasIniciais(); 
+
+    // ==========================================
+    // PRODUTOS: AGORA VISÍVEIS POR PADRÃO
+    // ==========================================
+    async function carregarTabelaProdutos() {
+        const res = await fetch('/api/admin/produtos'); 
+        listaProdutosGlobais = await res.json();
+        document.getElementById('inputBuscaProduto').dispatchEvent(new Event('input'));
+    }
+
+    document.getElementById('inputBuscaProduto').addEventListener('input', function(e) {
+        const termo = e.target.value.toLowerCase().trim();
+        const tbody = document.getElementById('tabela-produtos'); 
+        
+        const filtrados = termo.length === 0 ? listaProdutosGlobais : listaProdutosGlobais.filter(p => {
+            return (p.nome && p.nome.toLowerCase().includes(termo)) || (p.categoria && p.categoria.nome && p.categoria.nome.toLowerCase().includes(termo));
+        });
+
+        tbody.innerHTML = '';
+        if(filtrados.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Nenhum produto encontrado.</td></tr>'; return; }
+        
+        filtrados.forEach(p => {
+            tbody.innerHTML += `<tr><td><img src="${p.imageUrl}" width="40" style="border-radius:5px;"></td><td>${p.nome}</td><td>${p.categoria.nome}</td><td>R$ ${p.preco.toFixed(2).replace('.',',')}</td><td><button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+        });
+    });
+
+
+    // ==========================================
+    // ESTOQUE: AGORA VISÍVEL POR PADRÃO
+    // ==========================================
+    async function carregarTabelaEstoque() {
+        const res = await fetch('/api/admin/produtos'); 
+        listaProdutosGlobais = await res.json(); 
+        document.getElementById('inputBuscaEstoque').dispatchEvent(new Event('input'));
+    }
+
+    document.getElementById('inputBuscaEstoque').addEventListener('input', function(e) {
+        const termo = e.target.value.toLowerCase().trim();
+        const tbody = document.getElementById('tabela-estoque'); 
+        
+        const filtrados = termo.length === 0 ? listaProdutosGlobais : listaProdutosGlobais.filter(p => {
+            return (p.nome && p.nome.toLowerCase().includes(termo)) || (p.categoria && p.categoria.nome && p.categoria.nome.toLowerCase().includes(termo));
+        });
+
+        tbody.innerHTML = '';
+        if(filtrados.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Nenhum item encontrado.</td></tr>'; return; }
+        
+        filtrados.forEach(p => {
+            tbody.innerHTML += `<tr><td class="fw-bold">${p.nome}</td><td><span class="badge bg-secondary">${p.categoria.nome}</span></td><td><input type="number" id="estq-${p.id}" class="form-control w-50 d-inline-block" value="${p.quantidadeEstoque || 0}"></td><td><button class="btn btn-sm btn-success" onclick="salvarEstoque(${p.id})">Atualizar</button></td></tr>`;
+        });
+    });
+
+    async function salvarEstoque(id) {
+        const qtd = document.getElementById(`estq-${id}`).value;
+        await fetch(`/api/admin/estoque/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quantidade: qtd }) }); 
+        alert('Estoque atualizado!'); carregarTabelaEstoque(); carregarEstatisticasIniciais(); 
+    }
+
+
+    // ==========================================
+    // CLIENTES: MANTIDO OCULTO POR PADRÃO (PERFORMANCE)
+    // ==========================================
+	async function carregarTabelaClientes() {
+        const res = await fetch('/api/admin/clientes'); listaClientesGlobais = await res.json(); 
+        const termoBusca = document.getElementById('inputBuscaCliente').value.toLowerCase().trim();
+        if (termoBusca.length === 0) { document.getElementById('tabela-clientes').innerHTML = '<tr><td colspan="6" class="text-center text-muted p-4"><i class="fa-solid fa-magnifying-glass fa-2x mb-2 text-primary opacity-50"></i><br>Digite um nome, telefone, ou cidade no campo acima para buscar clientes.<br><small>Isso evita travamentos na sua loja.</small></td></tr>'; } 
+        else { document.getElementById('inputBuscaCliente').dispatchEvent(new Event('input')); }
+    }
+
+    document.getElementById('inputBuscaCliente').addEventListener('input', function(e) {
+        const termo = e.target.value.toLowerCase().trim();
+        const tbody = document.getElementById('tabela-clientes'); 
+        if(termo.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-4"><i class="fa-solid fa-magnifying-glass fa-2x mb-2 text-primary opacity-50"></i><br>Digite um nome, telefone, ou cidade no campo acima para buscar clientes.<br><small>Isso evita travamentos na sua loja.</small></td></tr>'; return; }
+
+        const filtrados = listaClientesGlobais.filter(c => { return (c.nome && c.nome.toLowerCase().includes(termo)) || (c.telefoneWhatsApp && c.telefoneWhatsApp.toLowerCase().includes(termo)) || (c.cidade && c.cidade.toLowerCase().includes(termo)) || (c.endereco && c.endereco.toLowerCase().includes(termo)); });
+
+        tbody.innerHTML = '';
+        if(filtrados.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Nenhum cliente encontrado.</td></tr>'; return; }
+        
+        filtrados.forEach(c => {
+            let dataFormatada = c.dataNascimento ? c.dataNascimento.split('-').reverse().join('/') : '-'; let zapLimpo = c.telefoneWhatsApp ? c.telefoneWhatsApp.replace(/\D/g,'') : ''; 
+            tbody.innerHTML += `<tr><td class="fw-bold">${c.nome}</td><td><a href="https://wa.me/${zapLimpo}" target="_blank" class="text-success text-decoration-none"><i class="fa-brands fa-whatsapp"></i> ${c.telefoneWhatsApp || '-'}</a></td><td>${dataFormatada}</td><td>${c.cidade || '-'}/${c.estado || '-'}</td><td>${c.endereco || '-'}, ${c.numero || '-'}</td><td><button class="btn btn-sm btn-primary mb-1" onclick="abrirModalEditarCliente(${c.id})" title="Editar"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-sm btn-danger mb-1" onclick="deletarCliente(${c.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+        });
+    });
+
+    async function deletarCliente(id) {
+        if(confirm("Tem certeza que deseja excluir este cliente do seu banco de dados?")) {
+            await fetch(`/api/admin/clientes/${id}`, { method: 'DELETE' }); carregarTabelaClientes(); carregarEstatisticasIniciais(); 
+        }
+    }
+
+    function abrirModalEditarCliente(id) {
+        const cliente = listaClientesGlobais.find(c => c.id === id);
+        if(cliente) {
+            document.getElementById('editCliId').value = cliente.id; document.getElementById('editCliNome').value = cliente.nome || '';
+            document.getElementById('editCliZap').value = cliente.telefoneWhatsApp || ''; document.getElementById('editCliNasc').value = cliente.dataNascimento || '';
+            document.getElementById('editCliCep').value = cliente.cep || ''; document.getElementById('editCliEndereco').value = cliente.endereco || '';
+            document.getElementById('editCliNumero').value = cliente.numero || ''; document.getElementById('editCliCidade').value = cliente.cidade || '';
+            document.getElementById('editCliEstado').value = cliente.estado || ''; new bootstrap.Modal(document.getElementById('modalEditarCliente')).show();
+        }
+    }
+
+    document.getElementById('formEditarCliente').addEventListener('submit', async (e) => {
+        e.preventDefault(); const id = document.getElementById('editCliId').value;
+        const clienteEditado = { nome: document.getElementById('editCliNome').value, telefoneWhatsApp: document.getElementById('editCliZap').value, dataNascimento: document.getElementById('editCliNasc').value, cep: document.getElementById('editCliCep').value, endereco: document.getElementById('editCliEndereco').value, numero: document.getElementById('editCliNumero').value, cidade: document.getElementById('editCliCidade').value, estado: document.getElementById('editCliEstado').value };
+        await fetch(`/api/admin/clientes/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(clienteEditado) });
+        bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide(); alert('Cliente atualizado!'); carregarTabelaClientes();
+    });
+
+    document.getElementById('formConfig').addEventListener('submit', async (e) => {
+        e.preventDefault(); const loja = { nome: document.getElementById('configNome').value, telefoneWhatsApp: document.getElementById('configZap').value, chavePix: document.getElementById('configPix').value };
+        await fetch('/api/admin/loja', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(loja) }); alert('Configurações salvas!'); carregarConfigsLoja();
+    });
+
+    async function carregarCategoriasFormulario() {
+        const res = await fetch('/api/admin/categorias'); const categorias = await res.json(); const select = document.getElementById('prodCategoria'); select.innerHTML = '';
+        categorias.forEach(cat => select.innerHTML += `<option value="${cat.id}">${cat.nome}</option>`);
+    }
+
+    async function fazerUploadImagem(fileInput) {
+        if (!fileInput.files || fileInput.files.length === 0) return null;
+        const formData = new FormData(); formData.append("file", fileInput.files[0]);
+        const response = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+        if (response.ok) { const data = await response.json(); return data.url; } else { throw new Error("Falha no upload"); }
+    }
+
+    document.getElementById('formMarca').addEventListener('submit', async (e) => {
+        e.preventDefault(); const btn = document.getElementById('btnSalvarMarca'); btn.innerText = "Fazendo upload... Aguarde"; btn.disabled = true;
+        try { let muralUrl = null; const fileInput = document.getElementById('configMuralFile');
+            if (fileInput.files.length > 0) { muralUrl = await fazerUploadImagem(fileInput); }
+            const loja = { corPrincipal: document.getElementById('configCor').value }; if (muralUrl) { loja.bannerMuralUrl = muralUrl; }
+            await fetch('/api/admin/loja', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(loja) });
+            alert('Marca e Mural atualizados!'); carregarConfigsLoja(); fileInput.value = ""; } catch (error) { alert('Erro ao fazer upload.'); } finally { btn.innerText = "Salvar Visual da Loja"; btn.disabled = false; }
+    });
+
+    document.getElementById('formProduto').addEventListener('submit', async (e) => {
+        e.preventDefault(); const btn = document.getElementById('btnSalvarProduto'); btn.innerText = "Enviando... Aguarde"; btn.disabled = true;
+        try { let fotoUrl = "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&auto=format&fit=crop"; const fileInput = document.getElementById('prodFile');
+            if (fileInput.files.length > 0) { fotoUrl = await fazerUploadImagem(fileInput); }
+            const produto = { nome: document.getElementById('prodNome').value, precoCusto: parseFloat(document.getElementById('prodCusto').value), preco: parseFloat(document.getElementById('prodPreco').value), imageUrl: fotoUrl, categoria: { id: document.getElementById('prodCategoria').value } };
+            await fetch('/api/admin/produto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(produto) });
+            alert('Produto salvo com sucesso!'); window.location.reload(); } catch (error) { alert('Erro ao salvar produto.'); btn.innerText = "Salvar no Banco"; btn.disabled = false; }
+    });
+</script>
+</body>
+</html>

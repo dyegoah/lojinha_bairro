@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo | LojinhaBairro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root { --cor-marca: #FF1493; --cor-botao-texto: #ffffff; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; padding-bottom: 80px; }
+        .navbar-custom { background-color: var(--cor-marca); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .mural-tematico { width: 100%; height: 200px; background-size: cover; background-position: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .produto-card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .produto-card:active { transform: scale(0.98); }
+        .produto-img { border-top-left-radius: 12px; border-top-right-radius: 12px; height: 180px; object-fit: cover; }
+        .btn-adicionar { background-color: var(--cor-marca); color: var(--cor-botao-texto); border: none; border-radius: 8px; width: 100%; padding: 8px; font-weight: 600; }
+        .btn-flutuante-carrinho { position: fixed; bottom: 20px; right: 20px; background-color: #25D366; color: white; border-radius: 50px; padding: 12px 24px; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4); font-size: 1.1rem; font-weight: bold; z-index: 1000; cursor: pointer; border: none; }
+        .categorias-scroll { display: flex; overflow-x: auto; white-space: nowrap; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
+        .categorias-scroll::-webkit-scrollbar { display: none; }
+        .categoria-pill { background-color: white; color: #6c757d; border: 1px solid #dee2e6; border-radius: 25px; padding: 6px 16px; margin-right: 10px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
+        .categoria-pill.active { background-color: var(--cor-marca); color: white; border-color: var(--cor-marca); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark navbar-custom sticky-top">
+        <div class="container-fluid d-flex justify-content-between">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="https://ui-avatars.com/api/?name=Loja&background=fff&color=FF1493" id="logo-loja" alt="Logo" width="35" height="35" class="rounded-circle d-inline-block align-text-top me-2">
+                <b id="nome-loja-nav">Carregando...</b>
+            </a>
+            <a href="/dashboard.html" class="text-white"><i class="fa-solid fa-user-lock"></i></a>
+        </div>
+    </nav>
+
+    <div class="mural-tematico"></div>
+
+    <div class="container">
+        <h5 class="mb-3 text-secondary">Nosso Catálogo</h5>
+        <div class="categorias-scroll" id="container-categorias"><div class="categoria-pill active" onclick="filtrarCategoria('todos', this)">Todos</div></div>
+        <div class="row g-3" id="container-produtos"><p class="text-center text-muted">Buscando produtos...</p></div>
+    </div>
+
+    <button class="btn-flutuante-carrinho" data-bs-toggle="modal" data-bs-target="#carrinhoModal">
+        <i class="fa-solid fa-basket-shopping me-2"></i> <span id="qtd-carrinho">0</span> itens
+    </button>
+
+    <div class="modal fade" id="carrinhoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title"><i class="fa-solid fa-basket-shopping"></i> Seu Pedido</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><ul id="lista-carrinho" class="list-group list-group-flush mb-3"></ul><div class="d-flex justify-content-between align-items-center fw-bold fs-5 px-2 mb-3"><span>Total:</span><span id="total-carrinho" class="text-success">R$ 0,00</span></div><div id="area-pix" class="d-none bg-light p-3 rounded border border-success border-opacity-25"><label class="form-label fw-bold text-success mb-1"><i class="fa-brands fa-pix"></i> Pague com PIX</label><p class="small text-muted mb-2">Copie a chave, pague no banco e envie o comprovante!</p><div class="input-group"><input type="text" class="form-control bg-white text-center fw-bold" id="chave-pix-copiar" readonly><button class="btn btn-outline-success" type="button" onclick="copiarPix()"><i class="fa-regular fa-copy"></i> Copiar</button></div></div></div><div class="modal-footer border-0"><button type="button" class="btn btn-secondary w-100 mb-2" data-bs-dismiss="modal">Continuar Comprando</button><button type="button" class="btn btn-success w-100" style="background-color: #25D366; border: none;" onclick="validarCarrinho()">Continuar para Entrega <i class="fa-solid fa-arrow-right"></i></button></div></div></div>
+    </div>
+
+    <div class="modal fade" id="modalCadastroCliente" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--cor-marca); color: white;"><h5 class="modal-title"><i class="fa-solid fa-map-location-dot"></i> Dados de Entrega</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="formCliente">
+                        <h6 class="text-muted mb-3">Dados Pessoais</h6>
+                        <div class="mb-2"><input type="text" id="cliNome" class="form-control" placeholder="Nome Completo" maxlength="100" required></div>
+                        <div class="row mb-3"><div class="col-6"><input type="text" id="cliZap" class="form-control" placeholder="WhatsApp" maxlength="15" oninput="this.value = mascaraTelefone(this.value)" required></div><div class="col-6"><input type="date" id="cliNasc" class="form-control" required></div></div>
+                        <h6 class="text-muted mb-3 mt-4">Endereço de Entrega</h6>
+                        <div class="row mb-2"><div class="col-6"><input type="text" id="cliCep" class="form-control" placeholder="CEP" maxlength="9" oninput="this.value = mascaraCEP(this.value)" onblur="buscarCEP()" required></div></div>
+                        <div class="row mb-2"><div class="col-9"><input type="text" id="cliEndereco" class="form-control" placeholder="Rua / Avenida" maxlength="150" required></div><div class="col-3"><input type="text" id="cliNumero" class="form-control" placeholder="Nº" maxlength="10" required></div></div>
+                        <div class="row mb-2"><div class="col-8"><input type="text" id="cliCidade" class="form-control" placeholder="Cidade" maxlength="100" required></div><div class="col-4"><input type="text" id="cliEstado" class="form-control" placeholder="UF" maxlength="2" oninput="this.value = mascaraUF(this.value)" required></div></div>
+                        <button type="submit" class="btn btn-success w-100 mt-3" style="background-color: #25D366; border: none;"><i class="fa-brands fa-whatsapp fs-5 align-middle me-1"></i> Confirmar e Enviar Pedido</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let telefoneLojista = ""; let possuiPix = false; let slugAtual = "doces-da-maria"; 
+        
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch(`/api/catalogo/${slugAtual}`); const data = await response.json();
+                document.getElementById('nome-loja-nav').innerText = data.loja.nome; document.documentElement.style.setProperty('--cor-marca', data.loja.corPrincipal); document.getElementById('logo-loja').src = `https://ui-avatars.com/api/?name=${data.loja.nome}&background=fff&color=${data.loja.corPrincipal.replace('#','')}`;
+                if(data.loja.bannerMuralUrl) { document.querySelector('.mural-tematico').style.backgroundImage = `url('${data.loja.bannerMuralUrl}')`; } telefoneLojista = data.loja.telefoneWhatsApp;
+                if(data.loja.chavePix && data.loja.chavePix.trim() !== "") { document.getElementById('area-pix').classList.remove('d-none'); document.getElementById('chave-pix-copiar').value = data.loja.chavePix; possuiPix = true; }
+                const catContainer = document.getElementById('container-categorias'); data.categorias.forEach(cat => { catContainer.innerHTML += `<div class="categoria-pill" onclick="filtrarCategoria('${cat.slug}', this)">${cat.nome}</div>`; });
+
+                const prodContainer = document.getElementById('container-produtos'); prodContainer.innerHTML = ''; 
+                data.produtos.forEach(prod => {
+                    const precoFormatado = prod.preco.toFixed(2).replace('.', ',');
+                    let nomeSeguro = prod.nome.replace(/'/g, "\\'"); // Evita erro se o nome tiver aspas
+                    prodContainer.innerHTML += `
+                        <div class="col-6 col-md-4 col-lg-3 item-produto" data-categoria="${prod.categoria.slug}">
+                            <div class="card produto-card h-100">
+                                <img src="${prod.imageUrl || 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&auto=format&fit=crop'}" class="card-img-top produto-img">
+                                <div class="card-body p-2 d-flex flex-column">
+                                    <h6 class="card-title mb-1" style="font-size: 0.9rem;">${prod.nome}</h6>
+                                    <p class="card-text text-success fw-bold mb-2">R$ ${precoFormatado}</p>
+                                    <button class="btn-adicionar mt-auto" onclick="adicionarAoCarrinho(${prod.id}, '${nomeSeguro}', ${prod.preco})"><i class="fa-solid fa-cart-plus"></i> Adicionar</button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                carregarDadosCliente();
+            } catch (error) { document.getElementById('container-produtos').innerHTML = '<p class="text-center text-danger">Erro ao carregar catálogo.</p>'; }
+        });
+
+        function mascaraTelefone(v) { v = v.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); return v; }
+        function mascaraCEP(v) { v = v.replace(/\D/g, ""); v = v.replace(/^(\d{5})(\d)/, "$1-$2"); return v; }
+        function mascaraUF(v) { return v.replace(/[^a-zA-Z]/g, "").toUpperCase(); }
+
+        let carrinho = []; let total = 0;
+        function adicionarAoCarrinho(id, nome, preco) { carrinho.push({ id: id, nome: nome, preco: preco }); total += preco; atualizarInterfaceCarrinho(); }
+
+        function atualizarInterfaceCarrinho() {
+            document.getElementById('qtd-carrinho').innerText = carrinho.length;
+            const lista = document.getElementById('lista-carrinho'); lista.innerHTML = ''; 
+            if (carrinho.length === 0) { lista.innerHTML = '<li class="list-group-item text-center text-muted">Vazio.</li>'; } 
+            else { carrinho.forEach((item) => { lista.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center px-2"><span style="font-size: 0.9rem;">1x ${item.nome}</span><span class="fw-bold" style="font-size: 0.9rem;">R$ ${item.preco.toFixed(2).replace('.', ',')}</span></li>`; }); }
+            document.getElementById('total-carrinho').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        function copiarPix() { var inputPix = document.getElementById("chave-pix-copiar"); inputPix.select(); inputPix.setSelectionRange(0, 99999); navigator.clipboard.writeText(inputPix.value).then(() => { alert("Chave copiada!"); }); }
+        function filtrarCategoria(categoria, elementoClicado) { document.querySelectorAll('.categoria-pill').forEach(pill => pill.classList.remove('active')); elementoClicado.classList.add('active'); document.querySelectorAll('.item-produto').forEach(produto => { if (categoria === 'todos' || produto.getAttribute('data-categoria') === categoria) { produto.style.display = 'block'; } else { produto.style.display = 'none'; } }); }
+        function validarCarrinho() { if (carrinho.length === 0) { alert("Adicione produtos primeiro!"); return; } bootstrap.Modal.getInstance(document.getElementById('carrinhoModal')).hide(); new bootstrap.Modal(document.getElementById('modalCadastroCliente')).show(); }
+
+        async function buscarCEP() {
+            let cep = document.getElementById('cliCep').value.replace(/\D/g, ''); 
+            if (cep.length === 8) {
+                let response = await fetch(`https://viacep.com.br/ws/${cep}/json/`); let data = await response.json();
+                if (!data.erro) { document.getElementById('cliEndereco').value = data.logradouro + " - " + data.bairro; document.getElementById('cliCidade').value = data.localidade; document.getElementById('cliEstado').value = data.uf; document.getElementById('cliNumero').focus(); }
+            }
+        }
+
+        function carregarDadosCliente() {
+            let dadosSalvos = localStorage.getItem('lojinhaCliente');
+            if(dadosSalvos) {
+                let cliente = JSON.parse(dadosSalvos); document.getElementById('cliNome').value = cliente.nome || ''; document.getElementById('cliZap').value = cliente.telefoneWhatsApp || ''; document.getElementById('cliNasc').value = cliente.dataNascimento || ''; document.getElementById('cliCep').value = cliente.cep || ''; document.getElementById('cliEndereco').value = cliente.endereco || ''; document.getElementById('cliNumero').value = cliente.numero || ''; document.getElementById('cliCidade').value = cliente.cidade || ''; document.getElementById('cliEstado').value = cliente.estado || '';
+            }
+        }
+
+        document.getElementById('formCliente').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cliente = { nome: document.getElementById('cliNome').value, telefoneWhatsApp: document.getElementById('cliZap').value, dataNascimento: document.getElementById('cliNasc').value, cep: document.getElementById('cliCep').value, endereco: document.getElementById('cliEndereco').value, numero: document.getElementById('editCliNumero') ? document.getElementById('editCliNumero').value : document.getElementById('cliNumero').value, cidade: document.getElementById('cliCidade').value, estado: document.getElementById('cliEstado').value };
+            localStorage.setItem('lojinhaCliente', JSON.stringify(cliente));
+
+            try { await fetch(`/api/catalogo/${slugAtual}/cliente`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cliente) }); } catch(e) {}
+
+            const dadosVenda = { valorTotal: total, quantidadeItens: carrinho.length, nomeCliente: cliente.nome, itens: carrinho };
+			try { await fetch(`/api/catalogo/${slugAtual}/venda`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosVenda) }); } catch(e) {}
+			
+            let nomeLoja = document.getElementById('nome-loja-nav').innerText; let mensagem = `*Novo Pedido - ${nomeLoja}*%0A%0A`;
+            mensagem += `*DADOS DO CLIENTE*%0A`; mensagem += `Nome: ${cliente.nome}%0A`; mensagem += `Endereço: ${cliente.endereco}, Nº ${cliente.numero}%0A`; mensagem += `Cidade: ${cliente.cidade}/${cliente.estado} (CEP: ${cliente.cep})%0A%0A`;
+            mensagem += `*ITENS DO PEDIDO*%0A`; carrinho.forEach((item) => { mensagem += `• 1x ${item.nome} - R$ ${item.preco.toFixed(2).replace('.', ',')}%0A`; });
+            mensagem += `%0A*Total da Compra: R$ ${total.toFixed(2).replace('.', ',')}*%0A%0A`;
+            if(possuiPix) { mensagem += "O pagamento será feito via PIX. Segue o comprovante em anexo!"; } else { mensagem += "Gostaria de confirmar a entrega e a forma de pagamento."; }
+            bootstrap.Modal.getInstance(document.getElementById('modalCadastroCliente')).hide(); window.open(`https://wa.me/${telefoneLojista}?text=${mensagem}`, '_blank');
+        });
+    </script>
+</body>
+</html>

@@ -66,17 +66,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let listaLojasGlobais = []; // Variável para guardar as lojas na memória e fazer a busca rápida
+        let listaLojasGlobais = []; 
 
         async function carregarLojas() {
             const response = await fetch('/api/superadmin/lojas');
             listaLojasGlobais = await response.json();
-            
-            // Renderiza a tabela inicial ou após alguma alteração (mantendo o filtro atual se houver)
             document.getElementById('inputBuscaLojista').dispatchEvent(new Event('input'));
         }
 
-        // FUNÇÃO QUE DESENHA AS LINHAS NA TABELA
         function renderizarTabela(lojas) {
             const tbody = document.getElementById('tabela-lojas'); 
             tbody.innerHTML = '';
@@ -102,6 +99,13 @@
                             <strong class="fs-6 text-dark">${l.nomeProprietario || 'Proprietário Ñ Cadastrado'}</strong><br>
                             <span class="text-primary fw-bold"><i class="fa-solid fa-store"></i> ${l.nome}</span> <span class="text-muted small">(/${l.slug})</span><br>
                             <span class="text-muted small"><i class="fa-solid fa-envelope"></i> ${l.email || '-'} | <i class="fa-solid fa-phone"></i> ${l.telefoneWhatsApp || '-'}</span><br>
+                            
+                            <span class="text-danger small mt-1 d-inline-block fw-bold">
+                                <i class="fa-solid fa-lock"></i> Senha: 
+                                <span id="senha-${l.id}" data-senha="${l.senha || ''}">••••••••</span>
+                                <i class="fa-solid fa-eye ms-1 text-primary" style="cursor: pointer;" onclick="toggleSenha(${l.id})" title="Mostrar/Esconder Senha"></i>
+                            </span><br>
+                            
                             <span class="text-secondary small mt-1 d-inline-block"><i class="fa-solid fa-calendar-check"></i> Cadastrado em: <b>${dataCad}</b></span>
                         </td>
                         <td class="p-3">
@@ -121,17 +125,29 @@
             });
         }
 
-        // LÓGICA DA BARRA DE BUSCA
+        // LÓGICA DO OLHINHO DE SENHA
+        function toggleSenha(id) {
+            const spanSenha = document.getElementById(`senha-${id}`);
+            const icone = spanSenha.nextElementSibling;
+            const senhaReal = spanSenha.getAttribute('data-senha');
+            
+            if (spanSenha.innerText === '••••••••') {
+                spanSenha.innerText = senhaReal;
+                icone.classList.remove('fa-eye');
+                icone.classList.add('fa-eye-slash');
+            } else {
+                spanSenha.innerText = '••••••••';
+                icone.classList.remove('fa-eye-slash');
+                icone.classList.add('fa-eye');
+            }
+        }
+
         document.getElementById('inputBuscaLojista').addEventListener('input', function(e) {
             const termo = e.target.value.toLowerCase().trim();
-            
-            // Se não tiver nada digitado, mostra todas as lojas
             if(termo.length === 0) {
                 renderizarTabela(listaLojasGlobais);
                 return;
             }
-
-            // Filtra o array pela busca
             const lojasFiltradas = listaLojasGlobais.filter(l => {
                 return (l.nome && l.nome.toLowerCase().includes(termo)) ||
                        (l.nomeProprietario && l.nomeProprietario.toLowerCase().includes(termo)) ||
@@ -139,11 +155,9 @@
                        (l.cidade && l.cidade.toLowerCase().includes(termo)) ||
                        (l.telefoneWhatsApp && l.telefoneWhatsApp.includes(termo));
             });
-
             renderizarTabela(lojasFiltradas);
         });
 
-        // FUNÇÕES DE AÇÃO DO ADMIN
         function abrirModalPlano(id) {
             document.getElementById('lojaPlanoId').value = id;
             new bootstrap.Modal(document.getElementById('modalEditarPlano')).show();
@@ -167,7 +181,6 @@
             localStorage.removeItem('lojaLogada'); window.location.href = '/';
         }
 
-        // Inicia carregando os dados do Java
         carregarLojas();
     </script>
 </body>

@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import aj.org.objectweb.asm.TypeReference;
 import br.com.higitech.lojinhaBairro.model.Categoria;
 import br.com.higitech.lojinhaBairro.model.Cliente;
 import br.com.higitech.lojinhaBairro.model.Lojinha;
@@ -30,6 +29,7 @@ import br.com.higitech.lojinhaBairro.repository.ProdutoRepository;
 import br.com.higitech.lojinhaBairro.repository.VendaRepository;
 import br.com.higitech.lojinhaBairro.service.CloudinaryService;
 import jakarta.servlet.http.HttpServletRequest;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 @RestController
@@ -62,15 +62,13 @@ public class APIController {
 
     @PostMapping("/auth/register")
     public ResponseEntity<?> register(@RequestBody Lojinha novaLoja) {
-        // Valida se email já existe
         if(lojinhaRepo.findAll().stream().anyMatch(l -> novaLoja.getEmail().equals(l.getEmail()))) {
             return ResponseEntity.badRequest().body(Map.of("erro", "E-mail já cadastrado no sistema."));
         }
-        // Gera o Slug (URL da loja) com base no nome da lojinha
         String baseSlug = novaLoja.getNome().toLowerCase().replaceAll("[^a-z0-9]+", "-");
         novaLoja.setSlug(baseSlug + "-" + (System.currentTimeMillis() % 1000));
         novaLoja.setAtivo(true);
-        novaLoja.setDataVencimento(java.time.LocalDate.now().plusDays(7)); // 7 dias grátis padrão
+        novaLoja.setDataVencimento(java.time.LocalDate.now().plusDays(7));
         return ResponseEntity.ok(lojinhaRepo.save(novaLoja));
     }
 
@@ -89,7 +87,7 @@ public class APIController {
         Lojinha loja = lojinhaRepo.findById(id).orElseThrow();
         int dias = payload.get("dias");
         
-        if (dias == 99999) { // Código para ILIMITADO / LIVRE
+        if (dias == 99999) { 
             loja.setDataVencimento(java.time.LocalDate.now().plusYears(100));
         } else {
             if(loja.getDataVencimento() == null || loja.getDataVencimento().isBefore(java.time.LocalDate.now())) {

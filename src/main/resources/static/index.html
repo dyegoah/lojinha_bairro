@@ -2,12 +2,186 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=/login.html">
-    <title>LojinhaBairro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | LojinhaBairro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .bg-hero { background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); color: white; }
+        .feature-icon { background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 1.5rem; margin-right: 15px;}
+        .login-card { max-width: 400px; width: 100%; }
+    </style>
 </head>
 <body>
-    <p style="text-align: center; margin-top: 50px; font-family: sans-serif; color: #555;">
-        Redirecionando para o sistema...
-    </p>
+    <div class="row h-100 g-0">
+        <div class="col-md-6 bg-hero d-none d-md-flex flex-column justify-content-center p-5">
+            <h1 class="display-4 fw-bold mb-3"><i class="fa-solid fa-store"></i> LojinhaBairro</h1>
+            <h3 class="mb-5 fw-light">O PDV e Catálogo Online perfeito para alavancar suas vendas.</h3>
+            
+            <div class="d-flex align-items-center mb-4">
+                <div class="feature-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+                <div><h5 class="mb-0">Catálogo Automático</h5><p class="mb-0 text-light">Seus clientes compram pelo celular direto pro seu WhatsApp.</p></div>
+            </div>
+            <div class="d-flex align-items-center mb-4">
+                <div class="feature-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                <div><h5 class="mb-0">Controle de Estoque</h5><p class="mb-0 text-light">Baixa automática ao confirmar pedidos.</p></div>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="feature-icon"><i class="fa-brands fa-pix"></i></div>
+                <div><h5 class="mb-0">Receba via PIX</h5><p class="mb-0 text-light">Sem taxas. O dinheiro cai direto na sua conta.</p></div>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex align-items-center justify-content-center bg-light p-4">
+            <div class="card border-0 shadow-lg login-card p-4">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary">Bem-vindo(a)</h2>
+                    <p class="text-muted">Acesse seu painel administrativo</p>
+                </div>
+                
+                <form id="formLogin">
+                    <div id="alertoErro" class="alert alert-danger d-none" role="alert"></div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-bold">E-mail</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fa-solid fa-envelope text-primary"></i></span>
+                            <input type="email" id="email" class="form-control" required placeholder="seu@email.com">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-bold">Senha</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fa-solid fa-lock text-primary"></i></span>
+                            <input type="password" id="senha" class="form-control" required placeholder="••••••••">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnAcessar">Acessar Sistema</button>
+                    
+                    <div class="text-center mt-4 border-top pt-3">
+                        <p class="text-muted small mb-1">Ainda não possui sua Lojinha?</p>
+                        <a href="#" class="text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#modalCadastro">🚀 Primeiro Acesso (Criar Conta Grátis)</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCadastro" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-rocket"></i> Crie sua LojinhaBairro</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <form id="formNovoLojista">
+                        <div id="alertaCadastro" class="alert alert-danger d-none"></div>
+                        
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">1. Dados da Lojinha & Acesso</h6>
+                        <div class="row mb-2">
+                            <div class="col-md-12 mb-2"><input type="text" id="regNomeLoja" class="form-control" placeholder="Nome da Sua Lojinha (Ex: Doces da Maria)" required></div>
+                            <div class="col-md-6 mb-2"><input type="email" id="regEmail" class="form-control" placeholder="E-mail para Login" required></div>
+                            <div class="col-md-6 mb-2"><input type="password" id="regSenha" class="form-control" placeholder="Senha Forte" required></div>
+                        </div>
+
+                        <h6 class="text-primary fw-bold mb-3 mt-4 border-bottom pb-2">2. Dados do Proprietário</h6>
+                        <div class="mb-2"><input type="text" id="regProprietario" class="form-control" placeholder="Nome Completo" required></div>
+                        <div class="row mb-2">
+                            <div class="col-md-6 mb-2"><input type="text" id="regZap" class="form-control" placeholder="WhatsApp (Contato)" maxlength="15" oninput="this.value = mascaraTelefone(this.value)" required></div>
+                            <div class="col-md-6 mb-2"><input type="date" id="regNasc" class="form-control" required></div>
+                        </div>
+
+                        <h6 class="text-primary fw-bold mb-3 mt-4 border-bottom pb-2">3. Endereço</h6>
+                        <div class="row mb-2">
+                            <div class="col-md-4 mb-2"><input type="text" id="regCep" class="form-control" placeholder="CEP" maxlength="9" oninput="this.value = mascaraCEP(this.value)" onblur="buscarCEP()" required></div>
+                            <div class="col-md-8 mb-2"><input type="text" id="regRua" class="form-control" placeholder="Rua / Avenida" required></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4 mb-2"><input type="text" id="regNumero" class="form-control" placeholder="Número" required></div>
+                            <div class="col-md-8 mb-2"><input type="text" id="regComp" class="form-control" placeholder="Complemento (Opcional)"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-9 mb-2"><input type="text" id="regCidade" class="form-control" placeholder="Cidade" required></div>
+                            <div class="col-md-3 mb-2"><input type="text" id="regUF" class="form-control" placeholder="UF" maxlength="2" oninput="this.value = mascaraUF(this.value)" required></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold" id="btnSalvarCadastro">Finalizar Cadastro e Testar Grátis</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // MÁSCARAS
+        function mascaraTelefone(v) { v = v.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); return v; }
+        function mascaraCEP(v) { v = v.replace(/\D/g, ""); v = v.replace(/^(\d{5})(\d)/, "$1-$2"); return v; }
+        function mascaraUF(v) { return v.replace(/[^a-zA-Z]/g, "").toUpperCase(); }
+
+        // BUSCA CEP
+        async function buscarCEP() {
+            let cep = document.getElementById('regCep').value.replace(/\D/g, ''); 
+            if (cep.length === 8) {
+                let response = await fetch(`https://viacep.com.br/ws/${cep}/json/`); let data = await response.json();
+                if (!data.erro) {
+                    document.getElementById('regRua').value = data.logradouro + " - " + data.bairro;
+                    document.getElementById('regCidade').value = data.localidade;
+                    document.getElementById('regUF').value = data.uf;
+                    document.getElementById('regNumero').focus();
+                }
+            }
+        }
+
+        // LOGIN
+        document.getElementById('formLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnAcessar'); btn.innerText = "Verificando..."; btn.disabled = true;
+            const alerta = document.getElementById('alertoErro'); alerta.classList.add('d-none');
+            
+            const creds = { email: document.getElementById('email').value, senha: document.getElementById('senha').value };
+            
+            try {
+                const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creds) });
+                const data = await response.json();
+                
+                if(!response.ok) throw new Error(data.erro || "Falha no login");
+                
+                if(data.role === 'SUPER_ADMIN') { window.location.href = '/dashboardAdmin.html'; } 
+                else { localStorage.setItem('lojaLogada', JSON.stringify(data)); window.location.href = '/dashboard.html'; }
+            } catch (err) {
+                alerta.innerText = err.message; alerta.classList.remove('d-none');
+                btn.innerText = "Acessar Sistema"; btn.disabled = false;
+            }
+        });
+
+        // NOVO CADASTRO
+        document.getElementById('formNovoLojista').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarCadastro'); btn.innerText = "Criando..."; btn.disabled = true;
+            const alerta = document.getElementById('alertaCadastro'); alerta.classList.add('d-none');
+
+            const novaLoja = {
+                nome: document.getElementById('regNomeLoja').value, email: document.getElementById('regEmail').value,
+                senha: document.getElementById('regSenha').value, nomeProprietario: document.getElementById('regProprietario').value,
+                telefoneWhatsApp: document.getElementById('regZap').value, dataNascimento: document.getElementById('regNasc').value,
+                cep: document.getElementById('regCep').value, rua: document.getElementById('regRua').value,
+                numero: document.getElementById('regNumero').value, complemento: document.getElementById('regComp').value,
+                cidade: document.getElementById('regCidade').value, estado: document.getElementById('regUF').value
+            };
+
+            try {
+                const response = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(novaLoja) });
+                if(!response.ok) { const erro = await response.json(); throw new Error(erro.erro || "Erro no cadastro."); }
+                
+                alert("Lojinha criada com sucesso! Você ganhou 7 dias de teste grátis. Faça o login agora.");
+                window.location.reload();
+            } catch(err) {
+                alerta.innerText = err.message; alerta.classList.remove('d-none');
+                btn.innerText = "Finalizar Cadastro e Testar Grátis"; btn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
